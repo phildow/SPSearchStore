@@ -1,0 +1,183 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1038\cocoasubrtf350
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 Menlo-Regular;}
+{\colortbl;\red255\green255\blue255;\red0\green116\blue0;\red14\green14\blue255;\red100\green56\blue32;
+\red196\green26\blue22;\red63\green110\blue116;\red38\green71\blue75;\red92\green38\blue153;\red46\green13\blue110;
+\red28\green0\blue207;\red170\green13\blue145;}
+\vieww11380\viewh12320\viewkind0
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs26 \cf0 \
+\pard\tx560\pardeftab560\ql\qnatural\pardirnatural
+
+\f1\fs22 \cf2 \CocoaLigature0 //\cf0 \
+\cf2 //  SPSearchStore.h\cf0 \
+\cf2 //  SPSearchStore\cf0 \
+\cf2 //\cf0 \
+\cf2 //  Created by Philip Dow on 6/6/11.\cf0 \
+\cf2 //  Copyright 2011 Philip Dow /Sprouted. All rights reserved.\cf0 \
+\cf2 //	{\field{\*\fldinst{HYPERLINK "mailto:phil@phildow.net"}}{\fldrslt \cf3 phil@phildow.net}} / {\field{\*\fldinst{HYPERLINK "mailto:phil@getsprouted.com"}}{\fldrslt \cf3 phil@getsprouted.com}}\cf0 \
+\cf2 //\
+//\
+//	Refer to redistribution and use conditions in class and header files\
+//	BSD License
+\f0\fs26 \cf0 \CocoaLigature1 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\b \cf0 Summary
+\b0 \
+SPSearchStore is an Obj-C wrapper for the SearchKit API. SearchKit offers powerful document indexing and "google-like" querying to CoreFoundation apps. SPSearchStore makes the API accessible to Cocoa applications by way of a simple public interface.\
+\
+SPSearchStore also provides access to the complete two-way to-many documents / terms graph contained in a SearchKit index, establishing the foundation for more complex analysis based on the semantic relationships among an arbitrary collection of documents.\
+\
+SPSearchStore is thread safe. You may use multiple threads to read from and write to the search store. SPSearchStore uses locks to manage access to the underlying data.\
+\
+
+\b Workflow
+\b0 \
+As the included application demonstrates, the workflow consists of three steps: 1. establishing an index and 2. performing searches or 3. performing document / term analysis.\
+\
+Don't forget to add the CoreServices framework to your project and include it wherever you are using SPSearchStore:\
+\
+\pard\tx560\pardeftab560\ql\qnatural\pardirnatural
+
+\f1\fs22 \cf4 \CocoaLigature0 #import \cf5 <CoreServices/CoreServices.h>
+\f0\fs26 \cf0 \CocoaLigature1 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 \ul \ulc0 1. Establishing an index
+\i \ulnone \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\i0 \cf0 A. Set up default text analysis options prior to store creation:\
+\
+\pard\tx560\pardeftab560\ql\qnatural\pardirnatural
+
+\f1\fs22 \cf0 \CocoaLigature0 [\cf6 SPSearchStore\cf0  \cf7 setDefaultTextAnalysisOption\cf0 :[\cf8 NSNumber\cf0  \cf9 numberWithInteger\cf0 :\cf10 2\cf0 ] \cf7 forKey\cf0 :(\cf8 NSString\cf0  *)\cf8 kSKMinTermLength\cf0 ];
+\f0\i\fs26 \CocoaLigature1 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\i0 \cf0 B. Create a memory or disk based store with a single call:
+\i \
+\
+\pard\tx560\pardeftab560\ql\qnatural\pardirnatural
+
+\f1\i0\fs22 \cf6 \CocoaLigature0 searchStore\cf0  = [[\cf6 SPSearchStore\cf0  \cf9 alloc\cf0 ] \cf7 initStoreWithMemory\cf0 :\cf11 nil\cf0  \cf7 type\cf0 :\cf9 kSKIndexInvertedVector\cf0 ];\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs26 \cf0 \CocoaLigature1 C. You can then set store behavior:\
+\
+\pard\tx560\pardeftab560\ql\qnatural\pardirnatural
+
+\f1\fs22 \cf6 \CocoaLigature0 searchStore\cf0 .\cf6 usesSpotlightImporters\cf0  = \cf11 YES\cf0 ;\
+\cf6 searchStore\cf0 .\cf6 usesConcurrentIndexing\cf0  = \cf11 NO\cf0 ;\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs26 \cf0 \CocoaLigature1 D. And add content to the store:
+\f1\fs22 \CocoaLigature0 \
+\pard\tx560\pardeftab560\ql\qnatural\pardirnatural
+\cf0 \
+[\cf6 searchStore\cf0  \cf7 addDocument\cf0 :(\cf8 NSURL\cf0 *)obj \cf7 typeHint\cf0 :\cf11 nil\cf0 ];\
+\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs26 \cf0 \ul \ulc0 \CocoaLigature1 2. Performing a Search
+\f1\fs22 \ulnone \CocoaLigature0 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs26 \cf0 \CocoaLigature1 A. Initialize a store search from a query string and query options:\
+\
+\pard\tx560\pardeftab560\ql\qnatural\pardirnatural
+
+\f1\fs22 \cf8 \CocoaLigature0 NSString\cf0  *searchString = \cf5 @"foo* && *bar"\cf0 ;\
+[\cf6 searchStore\cf0  \cf7 prepareSearch\cf0 :searchString \cf7 options\cf0 :\cf9 kSKSearchOptionDefault\cf0 ];\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs26 \cf0 \CocoaLigature1 B. Fetch the search results either at one time or with multiple calls:\
+\
+\pard\tx560\pardeftab560\ql\qnatural\pardirnatural
+
+\f1\fs22 \cf8 \CocoaLigature0 NSArray\cf0  * results = \cf11 nil\cf0 ;
+\f0\fs24 \CocoaLigature1 \
+
+\f1\fs22 \cf8 \CocoaLigature0 NSArray\cf0  * ranks = \cf11 nil\cf0 ;\
+[\cf6 searchStore\cf0  \cf7 fetchResults\cf0 :&results \cf7 ranksArray\cf0 :&ranks \cf7 untilFinished\cf0 :\cf11 YES\cf0 ];\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs26 \cf0 \CocoaLigature1 C. Normalize the relevancy results:\
+\
+\pard\tx560\pardeftab560\ql\qnatural\pardirnatural
+
+\f1\fs22 \cf8 \CocoaLigature0 NSArray\cf0  * normalizedRanks = [\cf6 searchStore\cf0  \cf7 normalizedRankingsArray\cf0 :ranks];\
+\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs26 \cf0 \ul \CocoaLigature1 2. Performing Document / Term Analysis\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 \ulnone A. Get all the terms or documents in the search index:\
+\
+\pard\tx560\pardeftab560\ql\qnatural\pardirnatural
+
+\f1\fs22 \cf8 \CocoaLigature0 NSArray\cf0  *allDocs = [\cf6 searchStore\cf0  \cf7 allDocuments\cf0 ];
+\f0\fs26 \CocoaLigature1 \
+
+\f1\fs22 \cf8 \CocoaLigature0 NSArray\cf0  *terms = [\cf6 searchStore\cf0  \cf7 allTerms\cf0 ];\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs26 \cf0 \CocoaLigature1 B. Get all the unique terms contained in a specific document:\
+\
+\pard\tx560\pardeftab560\ql\qnatural\pardirnatural
+
+\f1\fs22 \cf8 \CocoaLigature0 NSURL\cf0  *docURI = ...;\
+\cf8 NSArray\cf0  *docTerms = [\cf6 searchStore\cf0  \cf7 termsForDocument\cf0 :docURI];\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs26 \cf0 \CocoaLigature1 C. Get all the documents which contain a specific term\
+\
+\pard\tx560\pardeftab560\ql\qnatural\pardirnatural
+
+\f1\fs22 \cf8 \CocoaLigature0 NSString\cf0  *term = \cf5 @"term"\cf0 ;\
+\cf8 NSArray\cf0  *docs = [\cf6 searchStore\cf0  \cf7 documentsForTerm\cf0 :term];\
+\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\b\fs26 \cf0 \CocoaLigature1 Limitations\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\b0 \cf0 SPSearchStore provides access to most of SearchKit's functionality, but there are a couple of noticeable limitations.\
+\
+1. 
+\i No support for document hierarchies
+\i0 : SearchKit supports the hierarchical indexing of document content, whether file based on free-standing text. SPSearchStore does not provide an interface to this mechanism.\
+\
+2. 
+\i No support for text summarization
+\i0 : SearchKit includes a set of APIs for summarizing documents. SPSearchStore does not support this functionality, choosing instead to focus on query and document/term capabilities. It should, however, be trivial to add a summarization category to NSString.\
+\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\b \cf0 Concerns\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\b0 \cf0 In the past there have been bugs reported with SearchKit's use of 3rd party Spotlight importers. There have also been more recent reports of memory issues with SearchKit. SPSearchStore could benefit from a comprehensive set of UnitTests for different document types and indexing conditions.\
+\
+Perhaps most annoyingly, SearchKit only indexes the textual content of files. It does not index any other metadata information nor does it index the file's name. Users will probably expect searches to match file names, but this is something you must accomplish separately, probably using NSPredicate.}

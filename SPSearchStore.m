@@ -33,9 +33,9 @@
  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-// Basically, you can use the code in your free, commercial, private and public projects
-// as long as you include the above notice and attribute the code to Philip Dow / Sprouted
-// If you use this code in an app send me a note. I'd love to know how the code is used.
+/*
+	For non-attribution licensing options refer to http://phildow.net/licensing/
+*/
 
 #import "SPSearchStore.h"
 
@@ -118,7 +118,6 @@ static NSMutableDictionary * SPSearchStoreTextAnalysisOptions() {
 @implementation SPSearchStore
 
 @synthesize searchIndex;
-@synthesize storeData;
 @synthesize storeURL;
 
 @synthesize writeLock;
@@ -128,8 +127,6 @@ static NSMutableDictionary * SPSearchStoreTextAnalysisOptions() {
 @synthesize analysisOptions;
 @synthesize stopWords;
 
-@synthesize usesSpotlightImporters;
-@synthesize usesConcurrentIndexing;
 @synthesize ignoresNumericTerms;
 
 @synthesize fetchCount;
@@ -254,29 +251,61 @@ static NSMutableDictionary * SPSearchStoreTextAnalysisOptions() {
 #pragma mark -
 
 - (void) setUsesSpotlightImporters:(BOOL)useSpotlight {
-	usesSpotlightImporters = useSpotlight;
+	@synchronized(self) {
+        usesSpotlightImporters = useSpotlight;
 
-	if ( useSpotlight ) SKLoadDefaultExtractorPlugIns();
+        if ( useSpotlight ) SKLoadDefaultExtractorPlugIns();
+    }
+}
+
+- (BOOL) usesSpotlightImporters {
+    BOOL uses;
+    @synchronized(self) {
+        uses = usesSpotlightImporters;
+    }
+    return uses;
 }
 
 - (void) setUsesConcurrentIndexing:(BOOL)useConcurrent {
-	usesConcurrentIndexing = useConcurrent;
-	
-	if ( useConcurrent && indexQue == nil ) {
-		indexQue = [[NSOperationQueue alloc] init];
-		[indexQue setMaxConcurrentOperationCount:1];
-			// we lock around calls to the index, so there is no point
-			// in supporting more than one operation simultaneously
-	}
-	else if ( !useConcurrent && indexQue != nil ) {
-		[indexQue cancelAllOperations];
-		[indexQue release], indexQue = nil;
-	}
+	@synchronized(self) {
+        usesConcurrentIndexing = useConcurrent;
+        
+        if ( useConcurrent && indexQue == nil ) {
+            indexQue = [[NSOperationQueue alloc] init];
+            [indexQue setMaxConcurrentOperationCount:1];
+                // we lock around calls to the index, so there is no point
+                // in supporting more than one operation simultaneously
+        }
+        else if ( !useConcurrent && indexQue != nil ) {
+            [indexQue cancelAllOperations];
+            [indexQue release], indexQue = nil;
+        }
+    }
+}
+
+- (BOOL) usesConcurrentIndexing {
+    BOOL uses;
+    @synchronized(self) {
+        uses = usesConcurrentIndexing;
+    }
+    return uses;
+}
+
+- (void) setStoreData:(NSMutableData *)inData {
+    @synchronized(self) {
+        [inData retain];
+        [storeData release];
+        storeData = inData;
+    }
 }
 
 - (NSMutableData *) storeData {
-	[self _flushIndexIfNecessary];
-	return storeData;
+	NSMutableData *data = nil;
+    @synchronized(self) {
+        [self _flushIndexIfNecessary];
+        data = [[storeData retain] autorelease];
+    }
+    return data;
 }
 
 #pragma mark -
@@ -940,7 +969,7 @@ bail:
 		
 		CFStringRef aTerm = SKIndexCopyTermStringForTermID( searchIndex, aTermID );
 		if ( aTerm == NULL ) {
-			NSLog(@"%s - unable to get term for term index %i", __PRETTY_FUNCTION__, aTermID);
+			NSLog(@"%s - unable to get term for term index %ld", __PRETTY_FUNCTION__, aTermID);
 			continue;
 		}
 		

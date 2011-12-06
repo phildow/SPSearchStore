@@ -33,9 +33,9 @@
  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-// Basically, you can use the code in your free, commercial, private and public projects
-// as long as you include the above notice and attribute the code to Philip Dow / Sprouted
-// If you use this code in an app send me a note. I'd love to know how the code is used.
+/*
+	For non-attribution licensing options refer to http://phildow.net/licensing/
+*/
 
 #import "SPSearchStoreAppDelegate.h"
 #import "SPSearchStore.h"
